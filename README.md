@@ -156,3 +156,4 @@ ai-postmortem-platform/
 | ERD | [03_ERD.md](docs/03_ERD.md) |
 | API 명세서 | [04_API명세서.md](docs/04_API명세서.md) |
 | 기술 스택 | [05_기술스택.md](docs/05_기술스택.md) |
+| 시스템 아키텍처 | [06_시스템아키텍처.md](docs/06_시스템아키텍처.md) |

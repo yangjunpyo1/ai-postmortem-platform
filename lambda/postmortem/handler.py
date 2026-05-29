@@ -31,7 +31,17 @@ def collect_slack_messages(channel_id, oldest, latest):
         headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
     )
     with urllib.request.urlopen(req) as res:
-        return json.loads(res.read().decode("utf-8"))
+        result = json.loads(res.read().decode("utf-8"))
+
+    messages = result.get("messages", [])
+
+    # 봇 메시지 필터링 (사람 대화만)
+    filtered = [
+        msg for msg in messages
+        if msg.get("subtype") is None and msg.get("bot_id") is None
+    ]
+
+    return filtered
 
 
 def handler(event, context):
@@ -60,8 +70,8 @@ def handler(event, context):
     latest_ts = ended_at.timestamp()
     oldest_ts = latest_ts - 86400  # 24시간
 
-    messages_result = collect_slack_messages(channel_id, oldest_ts, latest_ts)
-    message_count = len(messages_result.get("messages", []))
+    messages = collect_slack_messages(channel_id, oldest_ts, latest_ts)
+    message_count = len(messages)
 
     # 완료 알림 전송
     send_slack_message(

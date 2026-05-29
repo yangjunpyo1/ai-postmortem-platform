@@ -145,8 +145,8 @@ def call_claude_api(messages, cloudwatch_logs=""):
 }}"""
 
     data = json.dumps({
-        "model": "claude-sonnet-4-20250514",
-        "max_tokens": 2000,
+        "model": "claude-sonnet-4-5",
+        "max_tokens": 4000,
         "messages": [
             {"role": "user", "content": prompt}
         ]
@@ -166,21 +166,27 @@ def call_claude_api(messages, cloudwatch_logs=""):
         response_text = result["content"][0]["text"]
 
         try:
-            return json.loads(response_text)
+            clean_text = response_text.strip()
+            if clean_text.startswith("```json"):
+                clean_text = clean_text[7:]
+            if clean_text.startswith("```"):
+                clean_text = clean_text[3:]
+            if clean_text.endswith("```"):
+                clean_text = clean_text[:-3]
+            return json.loads(clean_text.strip())
         except json.JSONDecodeError:
             return {"summary": response_text, "error": "JSON 파싱 실패"}
 
 
 def save_to_rds(postmortem_data, messages):
     # TODO: M4에서 RDS 연동 후 구현
-    # incidents 테이블 저장
-    # postmortems 테이블 저장
-    # slack_messages 테이블 저장
     print(f"RDS 저장 예정 데이터: {json.dumps(postmortem_data, ensure_ascii=False)}")
     return True
 
 
 def handler(event, context):
+    print(f"받은 이벤트: {json.dumps(event)}")
+
     body = {}
     if isinstance(event.get("body"), str):
         from urllib.parse import parse_qs
@@ -213,7 +219,6 @@ def handler(event, context):
     postmortem_draft = call_claude_api(messages, cloudwatch_data)
     postmortem_draft["is_ai_generated"] = True
 
-    # RDS 저장 (M4에서 구현 완성)
     save_to_rds(postmortem_draft, messages)
 
     dashboard_url = os.environ.get("DASHBOARD_URL", "https://your-cloudfront-url.com")

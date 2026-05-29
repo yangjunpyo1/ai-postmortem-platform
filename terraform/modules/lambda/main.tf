@@ -93,6 +93,13 @@ resource "aws_iam_role_policy" "lambda" {
           "logs:GetLogEvents"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -109,7 +116,7 @@ resource "aws_lambda_function" "fastapi" {
   filename      = "${path.module}/lambda_fastapi.zip"
   function_name = "${var.project_name}-lambda-fastapi"
   role          = aws_iam_role.lambda.arn
-  handler = "app.main.handler"
+  handler       = "app.main.handler"
   runtime       = "python3.11"
   timeout       = 300
   memory_size   = 256
@@ -203,4 +210,3 @@ resource "aws_lambda_event_source_mapping" "critical" {
   function_name    = aws_lambda_function.alarm.arn
   batch_size       = 1
 }
-

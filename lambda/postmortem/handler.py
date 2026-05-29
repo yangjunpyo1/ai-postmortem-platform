@@ -1,6 +1,7 @@
 import json
 import os
 import urllib.request
+import boto3
 from datetime import datetime
 
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
@@ -43,6 +44,34 @@ def collect_slack_messages(channel_id, oldest, latest):
     ]
 
     return filtered
+
+
+def collect_cloudwatch_logs(oldest_ts, latest_ts):
+    client = boto3.client("logs", region_name="ap-northeast-2")
+    log_groups = [
+        "/aws/lambda/yp-lambda-fastapi",
+        "/aws/lambda/yp-lambda-alarm",
+        "/aws/lambda/yp-lambda-postmortem"
+    ]
+
+    all_logs = []
+    start_ms = int(oldest_ts * 1000)
+    end_ms = int(latest_ts * 1000)
+
+    for log_group in log_groups:
+        try:
+            response = client.filter_log_events(
+                logGroupName=log_group,
+                startTime=start_ms,
+                endTime=end_ms,
+                filterPattern="?ERROR ?error ?Exception ?exception"
+            )
+            for event in response.get("events", []):
+                all_logs.append(f"[{log_group}] {event['message'].strip()}")
+        except Exception as e:
+            print(f"CloudWatch 로그 수집 실패 {log_group}: {e}")
+
+    return "\n".join(all_logs) if all_logs else "수집된 에러 로그 없음"
 
 
 def call_claude_api(messages, cloudwatch_logs=""):
@@ -107,16 +136,21 @@ def handler(event, context):
     messages = collect_slack_messages(channel_id, oldest_ts, latest_ts)
     message_count = len(messages)
 
-    # Claude API 호출 (M3에서 고도화 예정)
-    postmortem_draft = call_claude_api(messages)
+    # CloudWatch 로그 수집
+    cloudwatch_logs = collect_cloudwatch_logs(oldest_ts, latest_ts)
+
+    # Claude API 호출
+    postmortem_draft = call_claude_api(messages, cloudwatch_logs)
 
     # 완료 알림 전송
+    dashboard_url = os.environ.get("DASHBOARD_URL", "https://your-cloudfront-url.com")
     send_slack_message(
         channel_id,
         f"✅ *장애 종료 처리 완료*\n"
         f"*종료 시각:* {ended_at_str}\n"
         f"*처리자:* {user_name}\n"
         f"*수집된 대화:* {message_count}건\n"
+        f"*Postmortem 문서:* {dashboard_url}/postmortem\n"
         f"Postmortem 문서 자동 생성을 시작합니다..."
     )
 

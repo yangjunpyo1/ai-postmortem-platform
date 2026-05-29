@@ -164,10 +164,10 @@ resource "aws_lambda_function" "alarm" {
 
 # Lambda 함수 - Postmortem 자동화
 resource "aws_lambda_function" "postmortem" {
-  filename      = "${path.module}/lambda_postmortem.zip"
+  filename      = "${path.module}/../../../lambda/postmortem/lambda_postmortem.zip"
   function_name = "${var.project_name}-lambda-postmortem"
   role          = aws_iam_role.lambda.arn
-  handler       = "postmortem.handler"
+  handler       = "handler.handler"
   runtime       = "python3.11"
   timeout       = 300
   memory_size   = 256

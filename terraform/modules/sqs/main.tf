@@ -100,10 +100,6 @@ resource "aws_sns_topic_subscription" "critical" {
   topic_arn = aws_sns_topic.alarm.arn
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.critical.arn
-
-  filter_policy = jsonencode({
-    severity = ["critical"]
-  })
 }
 
 # SNS → SQS 구독 - Warning
@@ -111,10 +107,6 @@ resource "aws_sns_topic_subscription" "warning" {
   topic_arn = aws_sns_topic.alarm.arn
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.warning.arn
-
-  filter_policy = jsonencode({
-    severity = ["warning"]
-  })
 }
 
 # SNS → SQS 구독 - Info
@@ -122,10 +114,6 @@ resource "aws_sns_topic_subscription" "info" {
   topic_arn = aws_sns_topic.alarm.arn
   protocol  = "sqs"
   endpoint  = aws_sqs_queue.info.arn
-
-  filter_policy = jsonencode({
-    severity = ["info"]
-  })
 }
 
 # SQS 정책 - Lambda가 접근할 수 있도록

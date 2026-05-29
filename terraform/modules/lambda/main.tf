@@ -109,7 +109,7 @@ resource "aws_lambda_function" "fastapi" {
   filename      = "${path.module}/lambda_fastapi.zip"
   function_name = "${var.project_name}-lambda-fastapi"
   role          = aws_iam_role.lambda.arn
-  handler       = "main.handler"
+  handler = "app.main.handler"
   runtime       = "python3.11"
   timeout       = 300
   memory_size   = 256
@@ -182,8 +182,8 @@ resource "aws_lambda_function" "postmortem" {
       SLACK_BOT_TOKEN  = var.slack_bot_token
       SLACK_CHANNEL_ID = var.slack_channel_id
       CLAUDE_API_KEY   = var.claude_api_key
-      DASHBOARD_URL    = ""
-      EC2_INSTANCE_ID  = ""
+      DASHBOARD_URL    = "https://d2eel5h4lqzq9y.cloudfront.net"
+      EC2_INSTANCE_ID  = "i-0bad2e60aa4fb7a05"
       DB_HOST          = var.rds_endpoint
       DB_NAME          = var.rds_db_name
       DB_USER          = var.rds_username
@@ -204,16 +204,3 @@ resource "aws_lambda_event_source_mapping" "critical" {
   batch_size       = 1
 }
 
-# SQS → Lambda 트리거 - Warning
-resource "aws_lambda_event_source_mapping" "warning" {
-  event_source_arn = var.sqs_warning_arn
-  function_name    = aws_lambda_function.alarm.arn
-  batch_size       = 1
-}
-
-# SQS → Lambda 트리거 - Info
-resource "aws_lambda_event_source_mapping" "info" {
-  event_source_arn = var.sqs_info_arn
-  function_name    = aws_lambda_function.alarm.arn
-  batch_size       = 1
-}

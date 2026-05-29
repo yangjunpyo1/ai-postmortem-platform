@@ -69,3 +69,9 @@ variable "slack_channel_id" {
   description = "Slack Channel ID"
   type        = string
 }
+
+variable "claude_api_key" {
+  description = "Claude API Key"
+  type        = string
+  sensitive   = true
+}

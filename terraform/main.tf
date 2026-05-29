@@ -72,6 +72,7 @@ module "lambda" {
   rds_password         = var.rds_password
   slack_bot_token      = var.slack_bot_token
   slack_channel_id     = var.slack_channel_id
+  claude_api_key       = var.claude_api_key
 }
 
 module "api_gateway" {

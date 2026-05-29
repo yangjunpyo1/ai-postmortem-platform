@@ -37,7 +37,6 @@ def collect_slack_messages(channel_id, oldest, latest):
 
     messages = result.get("messages", [])
 
-    # 봇 메시지 필터링 (사람 대화만)
     filtered = [
         msg for msg in messages
         if msg.get("subtype") is None and msg.get("bot_id") is None
@@ -74,20 +73,80 @@ def collect_cloudwatch_logs(oldest_ts, latest_ts):
     return "\n".join(all_logs) if all_logs else "수집된 에러 로그 없음"
 
 
+def collect_cloudwatch_metrics(oldest_ts, latest_ts):
+    client = boto3.client("cloudwatch", region_name="ap-northeast-2")
+    start_time = datetime.utcfromtimestamp(oldest_ts)
+    end_time = datetime.utcfromtimestamp(latest_ts)
+    ec2_instance_id = os.environ.get("EC2_INSTANCE_ID", "")
+
+    metrics = []
+
+    try:
+        response = client.get_metric_statistics(
+            Namespace="AWS/EC2",
+            MetricName="CPUUtilization",
+            Dimensions=[{"Name": "InstanceId", "Value": ec2_instance_id}],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=300,
+            Statistics=["Average", "Maximum"]
+        )
+        for point in response.get("Datapoints", []):
+            metrics.append(f"[CPU] {point['Timestamp']} - 평균: {point['Average']:.1f}%, 최대: {point['Maximum']:.1f}%")
+    except Exception as e:
+        print(f"CPU 메트릭 수집 실패: {e}")
+
+    try:
+        response = client.get_metric_statistics(
+            Namespace="CWAgent",
+            MetricName="mem_used_percent",
+            Dimensions=[{"Name": "InstanceId", "Value": ec2_instance_id}],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=300,
+            Statistics=["Average", "Maximum"]
+        )
+        for point in response.get("Datapoints", []):
+            metrics.append(f"[Memory] {point['Timestamp']} - 평균: {point['Average']:.1f}%, 최대: {point['Maximum']:.1f}%")
+    except Exception as e:
+        print(f"메모리 메트릭 수집 실패: {e}")
+
+    return "\n".join(metrics) if metrics else "수집된 메트릭 없음"
+
+
 def call_claude_api(messages, cloudwatch_logs=""):
-    # TODO: M3에서 프롬프트 설계 완성
-    prompt = f"""
-슬랙 대화와 CloudWatch 로그를 분석하여 Postmortem 문서를 작성해주세요.
+    slack_text = "\n".join([
+        f"[{msg.get('user', 'unknown')}] {msg.get('text', '')}"
+        for msg in messages
+    ])
+
+    prompt = f"""당신은 IT 장애 분석 전문가입니다. 아래 슬랙 대화와 CloudWatch 로그를 분석하여 Postmortem 문서를 JSON 형식으로 작성해주세요.
 
 [슬랙 대화]
-{json.dumps(messages, ensure_ascii=False, indent=2)}
+{slack_text}
 
-[CloudWatch 로그]
+[CloudWatch 로그 및 메트릭]
 {cloudwatch_logs}
-"""
+
+다음 JSON 형식으로 응답해주세요. JSON 외에 다른 텍스트는 포함하지 마세요:
+{{
+  "started_at": "장애 발생 시각",
+  "ended_at": "장애 종료 시각",
+  "downtime": "총 다운타임 (예: 1시간 30분)",
+  "summary": "장애 요약 (2-3문장)",
+  "severity": "Critical/Warning/Info 중 하나",
+  "timeline": "장애 타임라인 (시간순 정리)",
+  "root_cause": "근본 원인 분석",
+  "resolution": "해결 방법",
+  "prevention": "재발 방지 대책",
+  "affected_range": "영향 범위 (서비스, 사용자 수 등)",
+  "assignee": "주요 담당자 (슬랙 대화에서 파악)",
+  "similar_incidents": "슬랙 대화와 로그에서 파악된 유사 장애 패턴 (카테고리, 키워드, 원인 기반으로 추론)"
+}}"""
+
     data = json.dumps({
         "model": "claude-sonnet-4-20250514",
-        "max_tokens": 1000,
+        "max_tokens": 2000,
         "messages": [
             {"role": "user", "content": prompt}
         ]
@@ -104,11 +163,24 @@ def call_claude_api(messages, cloudwatch_logs=""):
     )
     with urllib.request.urlopen(req) as res:
         result = json.loads(res.read().decode("utf-8"))
-        return result["content"][0]["text"]
+        response_text = result["content"][0]["text"]
+
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            return {"summary": response_text, "error": "JSON 파싱 실패"}
+
+
+def save_to_rds(postmortem_data, messages):
+    # TODO: M4에서 RDS 연동 후 구현
+    # incidents 테이블 저장
+    # postmortems 테이블 저장
+    # slack_messages 테이블 저장
+    print(f"RDS 저장 예정 데이터: {json.dumps(postmortem_data, ensure_ascii=False)}")
+    return True
 
 
 def handler(event, context):
-    # 슬랙 슬래시 명령어 파싱
     body = {}
     if isinstance(event.get("body"), str):
         from urllib.parse import parse_qs
@@ -125,24 +197,25 @@ def handler(event, context):
             "body": json.dumps({"text": "알 수 없는 명령어입니다."})
         }
 
-    # 종료 시각 기록
     ended_at = datetime.utcnow()
     ended_at_str = ended_at.strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # 슬랙 대화 수집 (최근 24시간)
     latest_ts = ended_at.timestamp()
-    oldest_ts = latest_ts - 86400  # 24시간
+    oldest_ts = latest_ts - 86400
 
     messages = collect_slack_messages(channel_id, oldest_ts, latest_ts)
     message_count = len(messages)
 
-    # CloudWatch 로그 수집
     cloudwatch_logs = collect_cloudwatch_logs(oldest_ts, latest_ts)
+    cloudwatch_metrics = collect_cloudwatch_metrics(oldest_ts, latest_ts)
+    cloudwatch_data = f"{cloudwatch_logs}\n\n[메트릭]\n{cloudwatch_metrics}"
 
-    # Claude API 호출
-    postmortem_draft = call_claude_api(messages, cloudwatch_logs)
+    postmortem_draft = call_claude_api(messages, cloudwatch_data)
+    postmortem_draft["is_ai_generated"] = True
 
-    # 완료 알림 전송
+    # RDS 저장 (M4에서 구현 완성)
+    save_to_rds(postmortem_draft, messages)
+
     dashboard_url = os.environ.get("DASHBOARD_URL", "https://your-cloudfront-url.com")
     send_slack_message(
         channel_id,

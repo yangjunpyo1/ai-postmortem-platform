@@ -12,6 +12,14 @@ resource "aws_security_group" "ec2" {
     cidr_blocks = ["10.0.0.0/16"]
   }
 
+  # MySQL (RDS 접근)
+  egress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
   # HTTPS (CloudWatch 데이터 수집)
   egress {
     from_port   = 443

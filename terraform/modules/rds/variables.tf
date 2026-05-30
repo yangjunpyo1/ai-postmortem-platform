@@ -48,3 +48,8 @@ variable "lambda_sg_id" {
   description = "Lambda 보안 그룹 ID"
   type        = string
 }
+
+variable "ec2_sg_id" {
+  description = "EC2 보안 그룹 ID"
+  type        = string
+}

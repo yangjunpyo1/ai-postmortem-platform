@@ -14,8 +14,8 @@ class PostmortemResponse(BaseModel):
     assignee: Optional[str] = None
     similar_incidents: Optional[str] = None
     is_ai_generated: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

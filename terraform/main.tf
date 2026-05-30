@@ -39,6 +39,7 @@ module "rds" {
   private_db_subnet_c = module.vpc.private_db_subnet_c_id
   vpc_id              = module.vpc.vpc_id
   lambda_sg_id        = module.lambda.lambda_security_group_id
+  ec2_sg_id           = module.ec2.ec2_security_group_id
 }
 
 module "s3" {

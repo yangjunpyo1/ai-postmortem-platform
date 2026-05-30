@@ -2,11 +2,57 @@ import json
 import os
 import urllib.request
 import boto3
+import pymysql
 from datetime import datetime
 
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 SLACK_CHANNEL_ID = os.environ.get("SLACK_CHANNEL_ID")
 CLAUDE_API_KEY = os.environ.get("CLAUDE_API_KEY")
+DB_HOST = os.environ.get("DB_HOST", "").split(":")[0]
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+
+
+def get_db_connection():
+    return pymysql.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+
+def get_active_incident():
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM incidents WHERE status = '발생중' ORDER BY started_at DESC LIMIT 1"
+            )
+            return cursor.fetchone()
+    except Exception as e:
+        print(f"RDS 조회 실패: {e}")
+        return None
+    finally:
+        conn.close()
+
+
+def update_incident_resolved(incident_id, ended_at, downtime):
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "UPDATE incidents SET status='종료', ended_at=%s, downtime=%s WHERE id=%s",
+                (ended_at, downtime, incident_id)
+            )
+        conn.commit()
+    except Exception as e:
+        print(f"RDS 업데이트 실패: {e}")
+    finally:
+        conn.close()
 
 
 def send_slack_message(channel, text):
@@ -36,12 +82,10 @@ def collect_slack_messages(channel_id, oldest, latest):
         result = json.loads(res.read().decode("utf-8"))
 
     messages = result.get("messages", [])
-
     filtered = [
         msg for msg in messages
         if msg.get("subtype") is None and msg.get("bot_id") is None
     ]
-
     return filtered
 
 
@@ -178,10 +222,50 @@ def call_claude_api(messages, cloudwatch_logs=""):
             return {"summary": response_text, "error": "JSON 파싱 실패"}
 
 
-def save_to_rds(postmortem_data, messages):
-    # TODO: M4에서 RDS 연동 후 구현
-    print(f"RDS 저장 예정 데이터: {json.dumps(postmortem_data, ensure_ascii=False)}")
-    return True
+def save_to_rds(postmortem_data, messages, incident_id=None):
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # postmortems 테이블 저장
+            cursor.execute("""
+                INSERT INTO postmortems 
+                (incident_id, summary, timeline, root_cause, resolution, prevention, 
+                affected_range, assignee, similar_incidents, is_ai_generated)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                incident_id,
+                postmortem_data.get("summary", ""),
+                postmortem_data.get("timeline", ""),
+                postmortem_data.get("root_cause", ""),
+                postmortem_data.get("resolution", ""),
+                postmortem_data.get("prevention", ""),
+                postmortem_data.get("affected_range", ""),
+                postmortem_data.get("assignee", ""),
+                postmortem_data.get("similar_incidents", ""),
+                True
+            ))
+
+            # slack_messages 테이블 저장
+            if incident_id:
+                for msg in messages:
+                    cursor.execute("""
+                        INSERT INTO slack_messages (incident_id, user_name, message, timestamp)
+                        VALUES (%s, %s, %s, %s)
+                    """, (
+                        incident_id,
+                        msg.get("user", "unknown"),
+                        msg.get("text", ""),
+                        msg.get("ts", "")
+                    ))
+
+        conn.commit()
+        print("RDS 저장 완료")
+        return True
+    except Exception as e:
+        print(f"RDS 저장 실패: {e}")
+        return False
+    finally:
+        conn.close()
 
 
 def handler(event, context):
@@ -206,9 +290,24 @@ def handler(event, context):
     ended_at = datetime.utcnow()
     ended_at_str = ended_at.strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    latest_ts = ended_at.timestamp()
-    oldest_ts = latest_ts - 86400
+    # RDS에서 활성 장애 조회
+    active_incident = get_active_incident()
+    incident_id = None
+    downtime = None
+    oldest_ts = ended_at.timestamp() - 86400
 
+    if active_incident:
+        incident_id = active_incident["id"]
+        started_at = active_incident["started_at"]
+        downtime_seconds = (ended_at - started_at).total_seconds()
+        downtime = downtime_seconds / 60  # 분 단위
+        oldest_ts = started_at.timestamp()
+        update_incident_resolved(incident_id, ended_at, downtime)
+        print(f"장애 종료 처리: incident_id={incident_id}, downtime={downtime:.1f}분")
+    else:
+        print("활성 장애 없음, 기본값으로 처리")
+
+    latest_ts = ended_at.timestamp()
     messages = collect_slack_messages(channel_id, oldest_ts, latest_ts)
     message_count = len(messages)
 
@@ -219,14 +318,16 @@ def handler(event, context):
     postmortem_draft = call_claude_api(messages, cloudwatch_data)
     postmortem_draft["is_ai_generated"] = True
 
-    save_to_rds(postmortem_draft, messages)
+    save_to_rds(postmortem_draft, messages, incident_id)
 
+    downtime_str = f"{downtime:.1f}분" if downtime else "계산 불가"
     dashboard_url = os.environ.get("DASHBOARD_URL", "https://your-cloudfront-url.com")
     send_slack_message(
         channel_id,
         f"✅ *장애 종료 처리 완료*\n"
         f"*종료 시각:* {ended_at_str}\n"
         f"*처리자:* {user_name}\n"
+        f"*다운타임:* {downtime_str}\n"
         f"*수집된 대화:* {message_count}건\n"
         f"*Postmortem 문서:* {dashboard_url}/postmortem\n"
         f"Postmortem 문서 자동 생성을 시작합니다..."

@@ -225,3 +225,4 @@ __marimo__/
 *.zip
 backend/package/
 backend/lambda_fastapi.zip
+lambda/postmortem/package/

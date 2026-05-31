@@ -127,7 +127,7 @@ function IncidentList() {
                 {filteredIncidents.map(inc => (
                   <tr
                     key={inc.id}
-                    onClick={() => navigate(`/incidents/${inc.id}`)}
+                    onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
                     className="border-t hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="px-4 py-3 text-sm">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>

@@ -3,6 +3,30 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import useAuth from '../hooks/useAuth';
 
+const Field = ({ label, field, multiline, editing, editData, setEditData, postmortem }) => (
+  <div className="mb-4">
+    <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
+    {editing ? (
+      multiline ? (
+        <textarea
+          value={editData[field] || ''}
+          onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
+          className="w-full border rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      ) : (
+        <input
+          type="text"
+          value={editData[field] || ''}
+          onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
+          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      )
+    ) : (
+      <p className="text-sm text-gray-800 whitespace-pre-wrap">{postmortem?.[field] || '-'}</p>
+    )}
+  </div>
+);
+
 function PostmortemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -51,30 +75,6 @@ function PostmortemDetail() {
     }
   };
 
-  const Field = ({ label, field, multiline }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
-      {editing ? (
-        multiline ? (
-          <textarea
-            value={editData[field] || ''}
-            onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        ) : (
-          <input
-            type="text"
-            value={editData[field] || ''}
-            onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-            className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        )
-      ) : (
-        <p className="text-sm text-gray-800 whitespace-pre-wrap">{postmortem?.[field] || '-'}</p>
-      )}
-    </div>
-  );
-
   if (loading) return <div className="p-8 text-center">로딩 중...</div>;
 
   return (
@@ -89,7 +89,6 @@ function PostmortemDetail() {
       </nav>
 
       <div className="max-w-4xl mx-auto p-6">
-        {/* 장애 기본 정보 */}
         {incident && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-2xl font-bold mb-4">{incident.title}</h2>
@@ -104,7 +103,6 @@ function PostmortemDetail() {
           </div>
         )}
 
-        {/* Postmortem 문서 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-bold">Postmortem 문서</h3>
@@ -138,21 +136,20 @@ function PostmortemDetail() {
 
           {postmortem ? (
             <>
-              <Field label="장애 요약" field="summary" multiline />
-              <Field label="타임라인" field="timeline" multiline />
-              <Field label="근본 원인 분석" field="root_cause" multiline />
-              <Field label="해결 방법" field="resolution" multiline />
-              <Field label="재발 방지 대책" field="prevention" multiline />
-              <Field label="영향 범위" field="affected_range" multiline />
-              <Field label="담당자" field="assignee" />
-              <Field label="유사 장애 히스토리" field="similar_incidents" multiline />
+              <Field label="장애 요약" field="summary" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="타임라인" field="timeline" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="근본 원인 분석" field="root_cause" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="해결 방법" field="resolution" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="재발 방지 대책" field="prevention" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="영향 범위" field="affected_range" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="담당자" field="assignee" editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              <Field label="유사 장애 히스토리" field="similar_incidents" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
             </>
           ) : (
             <p className="text-gray-500 text-center py-8">Postmortem 문서가 없습니다.</p>
           )}
         </div>
 
-        {/* 유사 장애 */}
         {similar.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-xl font-bold mb-4">유사 장애</h3>

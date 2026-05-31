@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from mangum import Mangum
 from app.api import auth, incidents, postmortems, statistics, similar, slack
 from app.database import Base, engine
@@ -6,12 +8,29 @@ from app.models import user, incident, postmortem, slack_message
 
 app = FastAPI(
     title="AI Postmortem Platform",
-    description="AI 기반 장애 Postmortem 자동화 플랫폼",
     version="1.0.0",
     root_path="/dev"
 )
 
-# 테이블 자동 생성
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=False,
+)
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    return JSONResponse(
+        content={},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
 Base.metadata.create_all(bind=engine)
 
 app.include_router(auth.router)
@@ -25,5 +44,4 @@ app.include_router(slack.router)
 def health_check():
     return {"status": "ok"}
 
-# Lambda 핸들러
 handler = Mangum(app, lifespan="off", api_gateway_base_path="/dev")

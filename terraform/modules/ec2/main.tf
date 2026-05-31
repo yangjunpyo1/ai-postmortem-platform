@@ -93,8 +93,8 @@ resource "aws_instance" "grafana" {
 
   user_data = <<-EOF
     #!/bin/bash
-    yum update -y
-    yum install -y docker
+    apt-get update -y
+    apt-get install -y docker.io
     systemctl start docker
     systemctl enable docker
     docker run -d \

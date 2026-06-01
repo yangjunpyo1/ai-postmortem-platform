@@ -189,8 +189,8 @@ resource "aws_lambda_function" "postmortem" {
       SLACK_BOT_TOKEN  = var.slack_bot_token
       SLACK_CHANNEL_ID = var.slack_channel_id
       CLAUDE_API_KEY   = var.claude_api_key
-      DASHBOARD_URL    = "https://d2avtsgnvcdq76.cloudfront.net"
-      EC2_INSTANCE_ID  = "i-06442987d9933f91d"
+      DASHBOARD_URL    = "https://d22zimj4ptpwuo.cloudfront.net"
+      EC2_INSTANCE_ID  = "i-0b9a2b1ee51fbd80a"
       DB_HOST          = var.rds_endpoint
       DB_NAME          = var.rds_db_name
       DB_USER          = var.rds_username

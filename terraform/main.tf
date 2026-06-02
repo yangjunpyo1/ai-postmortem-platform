@@ -90,6 +90,7 @@ module "cloudwatch" {
   project_name = var.project_name
   environment  = var.environment
   sns_arn      = module.sqs.sns_arn
+  api_gateway_id = module.api_gateway.api_gateway_id
 }
 
 module "ec2" {

@@ -31,6 +31,19 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
+# S3 CORS 설정
+resource "aws_s3_bucket_cors_configuration" "frontend" {
+  bucket = aws_s3_bucket.frontend.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = []
+    max_age_seconds = 3000
+  }
+}
+
 # S3 버킷 정책
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id

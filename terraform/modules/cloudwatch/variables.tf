@@ -12,3 +12,8 @@ variable "sns_arn" {
   description = "SNS Topic ARN"
   type        = string
 }
+
+variable "api_gateway_id" {
+  description = "API Gateway ID"
+  type        = string
+}

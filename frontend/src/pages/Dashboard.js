@@ -50,7 +50,7 @@ function Dashboard() {
           </div>
           <div className="bg-white rounded-lg shadow p-6 text-center">
             <p className="text-gray-500 text-sm mb-2">평균 다운타임</p>
-            <p className="text-4xl font-bold text-red-600">{stats?.avg_downtime ? `${Math.round(stats.avg_downtime)}분` : '-'}</p>
+            <p className="text-4xl font-bold text-red-600">{stats?.average_downtime ? `${Math.round(stats.average_downtime)}분` : '-'}</p>
           </div>
         </div>
 

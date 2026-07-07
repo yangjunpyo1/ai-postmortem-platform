@@ -64,6 +64,12 @@ variable "ec2_instance_type" {
   default     = "t2.micro"
 }
 
+variable "grafana_admin_password" {
+  description = "Grafana admin 비밀번호"
+  type        = string
+  sensitive   = true
+}
+
 variable "rds_instance_type" {
   description = "RDS 인스턴스 타입"
   type        = string

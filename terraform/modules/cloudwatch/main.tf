@@ -353,3 +353,45 @@ resource "aws_cloudwatch_log_metric_filter" "lambda_fastapi_warnings" {
     value     = "1"
   }
 }
+
+# CloudWatch Alarm - FastAPI 에러 로그 Critical
+resource "aws_cloudwatch_metric_alarm" "fastapi_log_errors_critical" {
+  alarm_name          = "${var.project_name}-fastapi-log-errors-critical"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "FastAPIErrorCount"
+  namespace           = "${var.project_name}/Lambda"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 5
+  alarm_description   = "FastAPI 에러 로그 5회 이상 - Critical"
+  alarm_actions       = [var.sns_arn]
+  ok_actions          = [var.sns_arn]
+
+  tags = {
+    Name        = "${var.project_name}-fastapi-log-errors-critical"
+    Environment = var.environment
+    Severity    = "critical"
+  }
+}
+
+# CloudWatch Alarm - Postmortem 에러 로그 Critical
+resource "aws_cloudwatch_metric_alarm" "postmortem_log_errors_critical" {
+  alarm_name          = "${var.project_name}-postmortem-log-errors-critical"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "PostmortemErrorCount"
+  namespace           = "${var.project_name}/Lambda"
+  period              = 60
+  statistic           = "Sum"
+  threshold           = 5
+  alarm_description   = "Postmortem 에러 로그 5회 이상 - Critical"
+  alarm_actions       = [var.sns_arn]
+  ok_actions          = [var.sns_arn]
+
+  tags = {
+    Name        = "${var.project_name}-postmortem-log-errors-critical"
+    Environment = var.environment
+    Severity    = "critical"
+  }
+}

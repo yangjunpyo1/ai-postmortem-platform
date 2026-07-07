@@ -82,6 +82,7 @@ function PostmortemDetail() {
       <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">AI Postmortem Platform</h1>
         <div className="flex gap-4">
+          <button onClick={() => navigate('/dashboard')} className="text-gray-600 hover:text-blue-600">대시보드</button>
           <button onClick={() => navigate('/incidents')} className="text-gray-600 hover:text-blue-600">장애 목록</button>
           <button onClick={() => navigate('/statistics')} className="text-gray-600 hover:text-blue-600">통계</button>
           <button onClick={logout} className="text-red-600 hover:text-red-800">로그아웃</button>

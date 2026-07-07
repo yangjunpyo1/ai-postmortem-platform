@@ -87,18 +87,19 @@ module "api_gateway" {
 module "cloudwatch" {
   source = "./modules/cloudwatch"
 
-  project_name = var.project_name
-  environment  = var.environment
-  sns_arn      = module.sqs.sns_arn
+  project_name   = var.project_name
+  environment    = var.environment
+  sns_arn        = module.sqs.sns_arn
   api_gateway_id = module.api_gateway.api_gateway_id
 }
 
 module "ec2" {
   source = "./modules/ec2"
 
-  project_name         = var.project_name
-  environment          = var.environment
-  ec2_instance_type    = var.ec2_instance_type
-  vpc_id               = module.vpc.vpc_id
-  private_app_subnet_a = module.vpc.private_app_subnet_a_id
+  project_name           = var.project_name
+  environment            = var.environment
+  ec2_instance_type      = var.ec2_instance_type
+  vpc_id                 = module.vpc.vpc_id
+  private_app_subnet_a   = module.vpc.private_app_subnet_a_id
+  grafana_admin_password = var.grafana_admin_password
 }

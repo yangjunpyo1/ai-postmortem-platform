@@ -20,6 +20,17 @@ function IncidentList() {
     started_at: new Date().toISOString().slice(0, 16)
   });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [deleting, setDeleting] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'success') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -29,6 +40,7 @@ function IncidentList() {
       if (category) params.category = category;
       const res = await api.get('/api/incidents', { params });
       setIncidents(res.data);
+      setSelectedIds([]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -55,10 +67,48 @@ function IncidentList() {
         started_at: new Date().toISOString().slice(0, 16)
       });
       fetchIncidents();
+      addToast('장애가 등록되었습니다.', 'success');
     } catch (err) {
       console.error(err);
+      addToast('장애 등록에 실패했습니다.', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredIncidents.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredIncidents.map(inc => inc.id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(`선택한 ${selectedIds.length}건의 장애를 삭제하시겠습니까?`)) return;
+
+    setDeleting(true);
+    try {
+      const results = await Promise.allSettled(
+        selectedIds.map(id => api.delete(`/api/incidents/${id}`))
+      );
+      const failCount = results.filter(r => r.status === 'rejected').length;
+      const successCount = results.length - failCount;
+
+      if (successCount > 0) addToast(`${successCount}건 삭제되었습니다.`, 'success');
+      if (failCount > 0) addToast(`${failCount}건 삭제에 실패했습니다.`, 'error');
+
+      setSelectedIds([]);
+      fetchIncidents();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -82,6 +132,18 @@ function IncidentList() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* 토스트 메시지 */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {toasts.map(t => (
+          <div
+            key={t.id}
+            className={`px-4 py-3 rounded shadow text-sm text-white ${t.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+          >
+            {t.message}
+          </div>
+        ))}
+      </div>
+
       <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">AI Postmortem Platform</h1>
         <div className="flex gap-4">
@@ -94,12 +156,23 @@ function IncidentList() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">장애 목록</h2>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            장애 등록
-          </button>
+          <div className="flex gap-2">
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                disabled={deleting}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? '삭제 중...' : `선택 삭제 (${selectedIds.length})`}
+              </button>
+            )}
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              장애 등록
+            </button>
+          </div>
         </div>
 
         {/* 장애 등록 모달 */}
@@ -216,6 +289,13 @@ function IncidentList() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left w-10">
+                    <input
+                      type="checkbox"
+                      checked={filteredIncidents.length > 0 && selectedIds.length === filteredIncidents.length}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">발생일</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제목</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">심각도</th>
@@ -231,6 +311,13 @@ function IncidentList() {
                     onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
                     className="border-t hover:bg-gray-50 cursor-pointer"
                   >
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(inc.id)}
+                        onChange={() => toggleSelect(inc.id)}
+                      />
+                    </td>
                     <td className="px-4 py-3 text-sm">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
                     <td className="px-4 py-3 text-sm font-medium">{inc.title}</td>
                     <td className="px-4 py-3">{getSeverityBadge(inc.severity)}</td>

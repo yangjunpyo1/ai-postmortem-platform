@@ -455,6 +455,7 @@ docker run -d \
   --name grafana \
   -p 3000:3000 \
   --restart always \
+  -e GF_SECURITY_ADMIN_PASSWORD='${var.grafana_admin_password}' \
   -v grafana-storage:/var/lib/grafana \
   -v /etc/grafana/provisioning:/etc/grafana/provisioning \
   -v /etc/grafana/dashboards:/etc/grafana/dashboards \

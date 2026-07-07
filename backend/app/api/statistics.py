@@ -26,7 +26,7 @@ def get_statistics(
     ).group_by(Incident.category).all()
     by_category = {c: cnt for c, cnt in category_counts}
 
-    avg_downtime = db.query(func.avg(Incident.downtime)).scalar()
+    avg_downtime = db.query(func.avg(Incident.downtime)).filter(Incident.downtime.isnot(None)).scalar()
 
     return StatisticsResponse(
         total_incidents=total,

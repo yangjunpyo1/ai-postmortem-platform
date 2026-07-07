@@ -4,6 +4,8 @@ from typing import Optional, List
 from datetime import datetime
 from app.database import get_db
 from app.models.incident import Incident
+from app.models.postmortem import Postmortem
+from app.models.slack_message import SlackMessage
 from app.schemas.incident import IncidentCreate, IncidentResponse
 from app.api.auth import get_current_user
 from app.models.user import User
@@ -80,3 +82,19 @@ def resolve_incident(
     db.commit()
     db.refresh(incident)
     return incident
+
+@router.delete("/{incident_id}")
+def delete_incident(
+    incident_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    incident = db.query(Incident).filter(Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="장애를 찾을 수 없습니다.")
+
+    db.query(SlackMessage).filter(SlackMessage.incident_id == incident_id).delete()
+    db.query(Postmortem).filter(Postmortem.incident_id == incident_id).delete()
+    db.delete(incident)
+    db.commit()
+    return {"message": "삭제되었습니다."}

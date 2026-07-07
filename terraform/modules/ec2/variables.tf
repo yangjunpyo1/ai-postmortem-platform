@@ -22,3 +22,9 @@ variable "private_app_subnet_a" {
   description = "프라이빗 앱 서브넷 A존 ID"
   type        = string
 }
+
+variable "grafana_admin_password" {
+  description = "Grafana admin 비밀번호"
+  type        = string
+  sensitive   = true
+}

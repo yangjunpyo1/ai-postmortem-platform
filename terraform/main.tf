@@ -74,6 +74,8 @@ module "lambda" {
   slack_bot_token      = var.slack_bot_token
   slack_channel_id     = var.slack_channel_id
   claude_api_key       = var.claude_api_key
+  ec2_instance_id      = module.ec2.ec2_instance_id
+  cloudfront_domain    = module.s3.cloudfront_domain
 }
 
 module "api_gateway" {

@@ -75,3 +75,13 @@ variable "claude_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "ec2_instance_id" {
+  description = "EC2 인스턴스 ID"
+  type        = string
+}
+
+variable "cloudfront_domain" {
+  description = "CloudFront 도메인"
+  type        = string
+}

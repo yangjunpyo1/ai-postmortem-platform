@@ -91,10 +91,19 @@ resource "aws_instance" "grafana" {
 
   user_data = <<EOF
 #!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+
 apt-get update -y
-apt-get install -y docker.io awscli
+curl -fsSL https://get.docker.com | sh
 systemctl start docker
 systemctl enable docker
+
+# AWS CLI v2 설치 (apt 버전 대신 공식 설치)
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+apt-get install -y unzip
+unzip /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+export PATH=$PATH:/usr/local/bin
 
 # CloudWatch Agent 설치
 wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
@@ -351,7 +360,7 @@ cat > /etc/grafana/dashboards/postmortem.json << 'DASHBOARD'
         {
           "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
           "dimensions": {},
-          "expression": "",
+          "expression": {},
           "id": "",
           "label": "",
           "logGroups": [],
@@ -465,7 +474,7 @@ docker run -d \
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
 REGION=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
-aws ec2 modify-instance-metadata-options \
+/usr/local/bin/aws ec2 modify-instance-metadata-options \
   --instance-id $INSTANCE_ID \
   --http-put-response-hop-limit 2 \
   --http-endpoint enabled \

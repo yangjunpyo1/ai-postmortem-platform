@@ -123,7 +123,9 @@ def resolve_assignee_name(assignee):
     else:
         return assignee
 
+    print(f"get_slack_user_name 호출 시작: user_id={user_id}")
     name = get_slack_user_name(user_id)
+    print(f"get_slack_user_name 호출 완료: user_id={user_id}, name={name}")
     return name if name else assignee
 
 
@@ -361,6 +363,10 @@ def handler(event, context):
 
     downtime_str = f"{downtime:.1f}분" if downtime else "계산 불가"
     dashboard_url = os.environ.get("DASHBOARD_URL", "https://your-cloudfront-url.com")
+    postmortem_link = (
+        f"{dashboard_url}/incidents/{incident_id}/postmortem"
+        if incident_id else dashboard_url
+    )
     send_slack_message(
         channel_id,
         f"✅ *장애 종료 처리 완료*\n"
@@ -368,7 +374,7 @@ def handler(event, context):
         f"*처리자:* {user_name}\n"
         f"*다운타임:* {downtime_str}\n"
         f"*수집된 대화:* {message_count}건\n"
-        f"*Postmortem 문서:* {dashboard_url}/postmortem\n"
+        f"*Postmortem 문서:* {postmortem_link}\n"
         f"Postmortem 문서 자동 생성을 시작합니다..."
     )
 

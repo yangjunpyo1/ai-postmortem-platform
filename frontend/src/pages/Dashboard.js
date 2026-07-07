@@ -34,7 +34,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">AI Postmortem Platform</h1>
+        <h1 className="text-xl font-bold cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
         <div className="flex gap-4">
           <button onClick={() => navigate('/incidents')} className="text-gray-600 hover:text-blue-600">장애 목록</button>
           <button onClick={() => navigate('/statistics')} className="text-gray-600 hover:text-blue-600">통계</button>

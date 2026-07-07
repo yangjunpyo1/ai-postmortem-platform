@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 import boto3
 import json
+from app.database import get_db
+from app.models.incident import Incident
 
 router = APIRouter(prefix="/slack", tags=["slack"])
 
@@ -17,13 +20,17 @@ async def slack_events(request: Request):
 
 
 @router.post("/commands")
-async def slack_commands(request: Request):
+async def slack_commands(request: Request, db: Session = Depends(get_db)):
     body = await request.form()
     command = body.get("command", "")
     channel_id = body.get("channel_id", "")
     user_name = body.get("user_name", "")
 
     if command == "/resolve":
+        active_incident = db.query(Incident).filter(Incident.status == "발생중").first()
+        if not active_incident:
+            return JSONResponse(content={"text": "현재 발생중인 장애가 없습니다."})
+
         # yp-lambda-postmortem 비동기 트리거
         try:
             lambda_client = boto3.client("lambda", region_name="ap-northeast-2")

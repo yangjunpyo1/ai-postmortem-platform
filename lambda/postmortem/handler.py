@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib.request
 import boto3
 import pymysql
@@ -87,6 +88,43 @@ def collect_slack_messages(channel_id, oldest, latest):
         if msg.get("subtype") is None and msg.get("bot_id") is None
     ]
     return filtered
+
+
+def get_slack_user_name(user_id):
+    url = f"https://slack.com/api/users.info?user={user_id}"
+    req = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
+    )
+    try:
+        with urllib.request.urlopen(req) as res:
+            result = json.loads(res.read().decode("utf-8"))
+        if not result.get("ok"):
+            print(f"users.info 조회 실패 ({user_id}): {result.get('error')}")
+            return None
+
+        user = result.get("user", {})
+        profile = user.get("profile", {})
+        return profile.get("display_name") or profile.get("real_name") or user.get("real_name")
+    except Exception as e:
+        print(f"users.info 호출 실패 ({user_id}): {e}")
+        return None
+
+
+def resolve_assignee_name(assignee):
+    if not assignee:
+        return assignee
+
+    mention_match = re.search(r"<@([UW][A-Z0-9]+)>", assignee)
+    if mention_match:
+        user_id = mention_match.group(1)
+    elif re.fullmatch(r"[UW][A-Z0-9]{6,}", assignee.strip()):
+        user_id = assignee.strip()
+    else:
+        return assignee
+
+    name = get_slack_user_name(user_id)
+    return name if name else assignee
 
 
 def collect_cloudwatch_logs(oldest_ts, latest_ts):
@@ -317,6 +355,7 @@ def handler(event, context):
 
     postmortem_draft = call_claude_api(messages, cloudwatch_data)
     postmortem_draft["is_ai_generated"] = True
+    postmortem_draft["assignee"] = resolve_assignee_name(postmortem_draft.get("assignee", ""))
 
     save_to_rds(postmortem_draft, messages, incident_id)
 

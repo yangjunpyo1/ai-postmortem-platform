@@ -46,15 +46,21 @@ function PostmortemDetail() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [incRes, postRes, simRes] = await Promise.all([
+      const [incRes, simRes] = await Promise.all([
         api.get(`/api/incidents/${id}`),
-        api.get(`/api/incidents/${id}/postmortem`),
         api.get(`/api/incidents/${id}/similar`)
       ]);
       setIncident(incRes.data);
-      setPostmortem(postRes.data);
-      setEditData(postRes.data);
       setSimilar(simRes.data);
+
+      try {
+        const postRes = await api.get(`/api/incidents/${id}/postmortem`);
+        setPostmortem(postRes.data);
+        setEditData(postRes.data);
+      } catch (postErr) {
+        setPostmortem(null);
+        setEditData({});
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -147,7 +153,7 @@ function PostmortemDetail() {
               <Field label="유사 장애 히스토리" field="similar_incidents" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
             </>
           ) : (
-            <p className="text-gray-500 text-center py-8">Postmortem 문서가 없습니다.</p>
+            <p className="text-gray-500 text-center py-8">Postmortem 문서가 생성 중입니다. /resolve 명령어로 생성할 수 있습니다.</p>
           )}
         </div>
 

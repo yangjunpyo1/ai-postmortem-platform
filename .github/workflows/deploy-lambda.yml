@@ -42,7 +42,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies into package dir
-        run: pip install -r backend/requirements.txt -t build/fastapi
+        run: pip install -r backend/requirements.txt -t build/fastapi --platform manylinux2014_x86_64 --only-binary=:all:
 
       - name: Copy app source
         run: cp -r backend/app build/fastapi/app
@@ -82,7 +82,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies into package dir
-        run: pip install -r lambda/postmortem/requirements.txt -t build/postmortem
+        run: pip install -r lambda/postmortem/requirements.txt -t build/postmortem --platform manylinux2014_x86_64 --only-binary=:all:
 
       - name: Copy handler source
         run: cp lambda/postmortem/handler.py build/postmortem/

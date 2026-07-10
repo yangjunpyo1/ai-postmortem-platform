@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import useAuth from '../hooks/useAuth';
+import SeverityBadge from '../components/SeverityBadge';
+import StatusBadge from '../components/StatusBadge';
 
 function IncidentList() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -112,26 +112,12 @@ function IncidentList() {
     }
   };
 
-  const getSeverityBadge = (sev) => {
-    const styles = {
-      Critical: 'bg-red-500/20 text-red-400',
-      Warning: 'bg-yellow-500/20 text-yellow-400',
-      Info: 'bg-green-500/20 text-green-400',
-    };
-    const icons = { Critical: '🔴', Warning: '🟡', Info: '🟢' };
-    return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[sev] || 'bg-gray-700 text-gray-300'}`}>
-        {icons[sev]} {sev}
-      </span>
-    );
-  };
-
   const filteredIncidents = incidents.filter(inc =>
     search ? inc.title.toLowerCase().includes(search.toLowerCase()) : true
   );
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <>
       {/* 토스트 메시지 */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map(t => (
@@ -143,15 +129,6 @@ function IncidentList() {
           </div>
         ))}
       </div>
-
-      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-100 cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
-        <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-blue-400 transition-colors">대시보드</button>
-          <button onClick={() => navigate('/statistics')} className="text-gray-400 hover:text-blue-400 transition-colors">통계</button>
-          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">로그아웃</button>
-        </div>
-      </nav>
 
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
@@ -178,7 +155,7 @@ function IncidentList() {
         {/* 장애 등록 모달 */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-            <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
               <h3 className="text-xl font-bold text-gray-100 mb-4">장애 등록</h3>
               <div className="space-y-4">
                 <div>
@@ -187,7 +164,7 @@ function IncidentList() {
                     type="text"
                     value={newIncident.title}
                     onChange={(e) => setNewIncident({...newIncident, title: e.target.value})}
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 placeholder-gray-500 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-950 border border-gray-700 text-gray-100 placeholder-gray-500 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="장애 제목 입력"
                   />
                 </div>
@@ -196,7 +173,7 @@ function IncidentList() {
                   <select
                     value={newIncident.severity}
                     onChange={(e) => setNewIncident({...newIncident, severity: e.target.value})}
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Critical">🔴 Critical</option>
                     <option value="Warning">🟡 Warning</option>
@@ -208,7 +185,7 @@ function IncidentList() {
                   <select
                     value={newIncident.category}
                     onChange={(e) => setNewIncident({...newIncident, category: e.target.value})}
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="서버">서버</option>
                     <option value="DB">DB</option>
@@ -223,7 +200,7 @@ function IncidentList() {
                     type="datetime-local"
                     value={newIncident.started_at}
                     onChange={(e) => setNewIncident({...newIncident, started_at: e.target.value})}
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -237,7 +214,7 @@ function IncidentList() {
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 border border-gray-600 text-gray-300 px-4 py-2 rounded hover:bg-gray-700"
+                  className="flex-1 border border-gray-700 text-gray-300 px-4 py-2 rounded hover:bg-gray-800"
                 >
                   취소
                 </button>
@@ -246,19 +223,19 @@ function IncidentList() {
           </div>
         )}
 
-        {/* 필터링 */}
-        <div className="bg-gray-800 border border-gray-700 p-4 rounded-lg mb-6 flex gap-4 flex-wrap">
+        {/* 필터바 */}
+        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg mb-6 flex gap-4 flex-wrap">
           <input
             type="text"
             placeholder="장애 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-900 border border-gray-600 text-gray-100 placeholder-gray-500 rounded px-3 py-2 flex-1 min-w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-gray-950 border border-gray-700 text-gray-100 placeholder-gray-500 rounded px-3 py-2 flex-1 min-w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={severity}
             onChange={(e) => { setSeverity(e.target.value); setPage(1); }}
-            className="bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체 심각도</option>
             <option value="Critical">🔴 Critical</option>
@@ -268,7 +245,7 @@ function IncidentList() {
           <select
             value={category}
             onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-            className="bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체 카테고리</option>
             <option value="DB">DB</option>
@@ -280,14 +257,14 @@ function IncidentList() {
         </div>
 
         {/* 목록 */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
           {loading ? (
             <div className="p-8 text-center text-gray-400">로딩 중...</div>
           ) : filteredIncidents.length === 0 ? (
             <div className="p-8 text-center text-gray-400">장애 내역이 없습니다.</div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-900/60">
+              <thead className="bg-black/20">
                 <tr>
                   <th className="px-4 py-3 text-left w-10">
                     <input
@@ -305,27 +282,32 @@ function IncidentList() {
                 </tr>
               </thead>
               <tbody>
-                {filteredIncidents.map(inc => (
-                  <tr
-                    key={inc.id}
-                    onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
-                    className="border-t border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors"
-                  >
-                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(inc.id)}
-                        onChange={() => toggleSelect(inc.id)}
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
-                    <td className="px-4 py-3">{getSeverityBadge(inc.severity)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{inc.category}</td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{inc.status}</td>
-                    <td className="px-4 py-3 text-sm text-gray-300">{inc.downtime ? `${inc.downtime.toFixed(0)}분` : '-'}</td>
-                  </tr>
-                ))}
+                {filteredIncidents.map(inc => {
+                  const isSelected = selectedIds.includes(inc.id);
+                  return (
+                    <tr
+                      key={inc.id}
+                      onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
+                      className={`border-t border-gray-800 cursor-pointer transition-colors ${
+                        isSelected ? 'bg-blue-500/10 border-l-2 border-l-blue-500' : 'hover:bg-gray-800/50'
+                      }`}
+                    >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(inc.id)}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
+                      <td className="px-4 py-3"><SeverityBadge severity={inc.severity} /></td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{inc.category}</td>
+                      <td className="px-4 py-3"><StatusBadge status={inc.status} /></td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{inc.downtime ? `${inc.downtime.toFixed(0)}분` : '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -336,7 +318,7 @@ function IncidentList() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 border border-gray-600 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-700"
+            className="px-4 py-2 border border-gray-700 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-800"
           >
             이전
           </button>
@@ -344,13 +326,13 @@ function IncidentList() {
           <button
             onClick={() => setPage(p => p + 1)}
             disabled={filteredIncidents.length === 0}
-            className="px-4 py-2 border border-gray-600 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-700"
+            className="px-4 py-2 border border-gray-700 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-800"
           >
             다음
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

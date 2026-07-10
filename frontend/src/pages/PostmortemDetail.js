@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import useAuth from '../hooks/useAuth';
+import SeverityBadge from '../components/SeverityBadge';
+import StatusBadge from '../components/StatusBadge';
 
 const Field = ({ label, field, multiline, editing, editData, setEditData, postmortem }) => (
   <div className="mb-4">
@@ -11,14 +12,14 @@ const Field = ({ label, field, multiline, editing, editData, setEditData, postmo
         <textarea
           value={editData[field] || ''}
           onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
-          className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       ) : (
         <input
           type="text"
           value={editData[field] || ''}
           onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
-          className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-950 border border-gray-700 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       )
     ) : (
@@ -30,7 +31,6 @@ const Field = ({ label, field, multiline, editing, editData, setEditData, postmo
 function PostmortemDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const [incident, setIncident] = useState(null);
   const [postmortem, setPostmortem] = useState(null);
   const [similar, setSimilar] = useState([]);
@@ -81,100 +81,108 @@ function PostmortemDetail() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gray-900 p-8 text-center text-gray-400">로딩 중...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-400">로딩 중...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-100 cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
-        <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-blue-400 transition-colors">대시보드</button>
-          <button onClick={() => navigate('/incidents')} className="text-gray-400 hover:text-blue-400 transition-colors">장애 목록</button>
-          <button onClick={() => navigate('/statistics')} className="text-gray-400 hover:text-blue-400 transition-colors">통계</button>
-          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">로그아웃</button>
-        </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto p-6">
-        {incident && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">{incident.title}</h2>
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
-              <div><span className="font-medium text-gray-400">발생 시각:</span> {new Date(incident.started_at).toLocaleString('ko-KR')}</div>
-              <div><span className="font-medium text-gray-400">종료 시각:</span> {incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR') : '-'}</div>
-              <div><span className="font-medium text-gray-400">다운타임:</span> {incident.downtime ? `${incident.downtime.toFixed(0)}분` : '-'}</div>
-              <div><span className="font-medium text-gray-400">심각도:</span> {incident.severity}</div>
-              <div><span className="font-medium text-gray-400">카테고리:</span> {incident.category}</div>
-              <div><span className="font-medium text-gray-400">상태:</span> {incident.status}</div>
+    <div className="max-w-6xl mx-auto p-6 grid grid-cols-3 gap-6 items-start">
+        {/* 왼쪽: 장애 메타정보 */}
+        <div className="col-span-1 space-y-6 sticky top-6">
+          {incident && (
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h2 className="text-lg font-bold text-gray-100 mb-4">{incident.title}</h2>
+              <div className="flex gap-2 mb-4">
+                <SeverityBadge severity={incident.severity} />
+                <StatusBadge status={incident.status} />
+              </div>
+              <dl className="space-y-3 text-sm">
+                <div>
+                  <dt className="text-gray-400">발생 시각</dt>
+                  <dd className="text-gray-100">{new Date(incident.started_at).toLocaleString('ko-KR')}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">종료 시각</dt>
+                  <dd className="text-gray-100">{incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR') : '-'}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">다운타임</dt>
+                  <dd className="text-gray-100">{incident.downtime ? `${incident.downtime.toFixed(0)}분` : '-'}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">카테고리</dt>
+                  <dd className="text-gray-100">{incident.category}</dd>
+                </div>
+              </dl>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-gray-100">Postmortem 문서</h3>
-            <div className="flex gap-2">
-              {editing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 disabled:opacity-50"
+          {similar.length > 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h3 className="text-sm font-bold text-gray-100 mb-4">유사 장애</h3>
+              <div className="space-y-3">
+                {similar.map(inc => (
+                  <div
+                    key={inc.id}
+                    onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
+                    className="border border-gray-800 rounded p-3 hover:bg-gray-800/50 cursor-pointer transition-colors"
                   >
-                    {saving ? '저장 중...' : '저장'}
-                  </button>
-                  <button
-                    onClick={() => { setEditing(false); setEditData(postmortem); }}
-                    className="border border-gray-600 text-gray-300 px-4 py-2 rounded hover:bg-gray-700"
-                  >
-                    취소
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="bg-gray-700 text-gray-100 px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  수정
-                </button>
-              )}
+                    <p className="font-medium text-sm text-gray-100">{inc.title}</p>
+                    <p className="text-xs text-gray-400 mt-1">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR')}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {postmortem ? (
-            <>
-              <Field label="장애 요약" field="summary" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="타임라인" field="timeline" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="근본 원인 분석" field="root_cause" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="해결 방법" field="resolution" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="재발 방지 대책" field="prevention" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="영향 범위" field="affected_range" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="담당자" field="assignee" editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-              <Field label="유사 장애 히스토리" field="similar_incidents" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
-            </>
-          ) : (
-            <p className="text-gray-400 text-center py-8">Postmortem 문서가 생성 중입니다. /resolve 명령어로 생성할 수 있습니다.</p>
           )}
         </div>
 
-        {similar.length > 0 && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-gray-100 mb-4">유사 장애</h3>
-            <div className="space-y-3">
-              {similar.map(inc => (
-                <div
-                  key={inc.id}
-                  onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
-                  className="border border-gray-700 rounded p-3 hover:bg-gray-700/50 cursor-pointer transition-colors"
-                >
-                  <p className="font-medium text-gray-100">{inc.title}</p>
-                  <p className="text-sm text-gray-400">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR')}</p>
-                </div>
-              ))}
+        {/* 오른쪽: Postmortem 섹션 */}
+        <div className="col-span-2">
+          <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-100">Postmortem 문서</h3>
+              <div className="flex gap-2">
+                {editing ? (
+                  <>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 disabled:opacity-50"
+                    >
+                      {saving ? '저장 중...' : '저장'}
+                    </button>
+                    <button
+                      onClick={() => { setEditing(false); setEditData(postmortem); }}
+                      className="border border-gray-700 text-gray-300 px-4 py-2 rounded hover:bg-gray-800"
+                    >
+                      취소
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="bg-gray-800 text-gray-100 px-4 py-2 rounded hover:bg-gray-700"
+                  >
+                    수정
+                  </button>
+                )}
+              </div>
             </div>
+
+            {postmortem ? (
+              <>
+                <Field label="장애 요약" field="summary" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="타임라인" field="timeline" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="근본 원인 분석" field="root_cause" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="해결 방법" field="resolution" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="재발 방지 대책" field="prevention" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="영향 범위" field="affected_range" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="담당자" field="assignee" editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+                <Field label="유사 장애 히스토리" field="similar_incidents" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
+              </>
+            ) : (
+              <p className="text-gray-400 text-center py-8">Postmortem 문서가 생성 중입니다. /resolve 명령어로 생성할 수 있습니다.</p>
+            )}
           </div>
-        )}
-      </div>
+        </div>
     </div>
   );
 }

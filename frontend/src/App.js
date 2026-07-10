@@ -7,6 +7,7 @@ import IncidentList from './pages/IncidentList';
 import PostmortemDetail from './pages/PostmortemDetail';
 import Statistics from './pages/Statistics';
 import PrivateRoute from './components/PrivateRoute';
+import Layout from './components/Layout';
 
 function App() {
   return (
@@ -14,10 +15,10 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        <Route path="/incidents" element={<PrivateRoute><IncidentList /></PrivateRoute>} />
-        <Route path="/incidents/:id/postmortem" element={<PrivateRoute><PostmortemDetail /></PrivateRoute>} />
-        <Route path="/statistics" element={<PrivateRoute><Statistics /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+        <Route path="/incidents" element={<PrivateRoute><Layout><IncidentList /></Layout></PrivateRoute>} />
+        <Route path="/incidents/:id/postmortem" element={<PrivateRoute><Layout><PostmortemDetail /></Layout></PrivateRoute>} />
+        <Route path="/statistics" element={<PrivateRoute><Layout><Statistics /></Layout></PrivateRoute>} />
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </Router>

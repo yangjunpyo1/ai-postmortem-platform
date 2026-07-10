@@ -18,8 +18,8 @@ class IncidentResponse(BaseModel):
     started_at: datetime
     ended_at: Optional[datetime] = None
     downtime: Optional[float] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

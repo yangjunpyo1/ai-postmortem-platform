@@ -94,7 +94,7 @@ function Dashboard() {
                     onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
                     className="border-t border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
+                    <td className="px-6 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
                     <td className="px-6 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
                     <td className="px-6 py-3"><SeverityBadge severity={inc.severity} /></td>
                     <td className="px-6 py-3"><StatusBadge status={inc.status} /></td>

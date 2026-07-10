@@ -299,7 +299,7 @@ function IncidentList() {
                           onChange={() => toggleSelect(inc.id)}
                         />
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
                       <td className="px-4 py-3"><SeverityBadge severity={inc.severity} /></td>
                       <td className="px-4 py-3 text-sm text-gray-300">{inc.category}</td>

@@ -97,11 +97,11 @@ function PostmortemDetail() {
               <dl className="space-y-3 text-sm">
                 <div>
                   <dt className="text-gray-400">발생 시각</dt>
-                  <dd className="text-gray-100">{new Date(incident.started_at).toLocaleString('ko-KR')}</dd>
+                  <dd className="text-gray-100">{new Date(incident.started_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</dd>
                 </div>
                 <div>
                   <dt className="text-gray-400">종료 시각</dt>
-                  <dd className="text-gray-100">{incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR') : '-'}</dd>
+                  <dd className="text-gray-100">{incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) : '-'}</dd>
                 </div>
                 <div>
                   <dt className="text-gray-400">다운타임</dt>
@@ -126,7 +126,7 @@ function PostmortemDetail() {
                     className="border border-gray-800 rounded p-3 hover:bg-gray-800/50 cursor-pointer transition-colors"
                   >
                     <p className="font-medium text-sm text-gray-100">{inc.title}</p>
-                    <p className="text-xs text-gray-400 mt-1">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                   </div>
                 ))}
               </div>

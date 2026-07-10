@@ -18,7 +18,7 @@ function IncidentList() {
     title: '',
     severity: 'Critical',
     category: '서버',
-    started_at: new Date().toISOString().slice(0, 16)
+    started_at: new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16)
   });
   const [submitting, setSubmitting] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -65,7 +65,7 @@ function IncidentList() {
         title: '',
         severity: 'Critical',
         category: '서버',
-        started_at: new Date().toISOString().slice(0, 16)
+        started_at: new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16)
       });
       fetchIncidents();
       addToast('장애가 등록되었습니다.', 'success');

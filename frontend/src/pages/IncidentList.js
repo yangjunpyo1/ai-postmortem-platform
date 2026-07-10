@@ -114,13 +114,13 @@ function IncidentList() {
 
   const getSeverityBadge = (sev) => {
     const styles = {
-      Critical: 'bg-red-100 text-red-800',
-      Warning: 'bg-yellow-100 text-yellow-800',
-      Info: 'bg-green-100 text-green-800',
+      Critical: 'bg-red-500/20 text-red-400',
+      Warning: 'bg-yellow-500/20 text-yellow-400',
+      Info: 'bg-green-500/20 text-green-400',
     };
     const icons = { Critical: '🔴', Warning: '🟡', Info: '🟢' };
     return (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[sev] || 'bg-gray-100'}`}>
+      <span className={`px-2 py-1 rounded text-xs font-medium ${styles[sev] || 'bg-gray-700 text-gray-300'}`}>
         {icons[sev]} {sev}
       </span>
     );
@@ -131,31 +131,31 @@ function IncidentList() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       {/* 토스트 메시지 */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`px-4 py-3 rounded shadow text-sm text-white ${t.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+            className={`px-4 py-3 rounded shadow-lg text-sm text-white ${t.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
           >
             {t.message}
           </div>
         ))}
       </div>
 
-      <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-100 cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
         <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-gray-600 hover:text-blue-600">대시보드</button>
-          <button onClick={() => navigate('/statistics')} className="text-gray-600 hover:text-blue-600">통계</button>
-          <button onClick={logout} className="text-red-600 hover:text-red-800">로그아웃</button>
+          <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-blue-400 transition-colors">대시보드</button>
+          <button onClick={() => navigate('/statistics')} className="text-gray-400 hover:text-blue-400 transition-colors">통계</button>
+          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">로그아웃</button>
         </div>
       </nav>
 
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">장애 목록</h2>
+          <h2 className="text-2xl font-bold text-gray-100">장애 목록</h2>
           <div className="flex gap-2">
             {selectedIds.length > 0 && (
               <button
@@ -168,7 +168,7 @@ function IncidentList() {
             )}
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
             >
               장애 등록
             </button>
@@ -177,26 +177,26 @@ function IncidentList() {
 
         {/* 장애 등록 모달 */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-              <h3 className="text-xl font-bold mb-4">장애 등록</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 w-full max-w-md">
+              <h3 className="text-xl font-bold text-gray-100 mb-4">장애 등록</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">장애 제목</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">장애 제목</label>
                   <input
                     type="text"
                     value={newIncident.title}
                     onChange={(e) => setNewIncident({...newIncident, title: e.target.value})}
-                    className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 placeholder-gray-500 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="장애 제목 입력"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">심각도</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">심각도</label>
                   <select
                     value={newIncident.severity}
                     onChange={(e) => setNewIncident({...newIncident, severity: e.target.value})}
-                    className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Critical">🔴 Critical</option>
                     <option value="Warning">🟡 Warning</option>
@@ -204,11 +204,11 @@ function IncidentList() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">카테고리</label>
                   <select
                     value={newIncident.category}
                     onChange={(e) => setNewIncident({...newIncident, category: e.target.value})}
-                    className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="서버">서버</option>
                     <option value="DB">DB</option>
@@ -218,12 +218,12 @@ function IncidentList() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">발생 시각</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">발생 시각</label>
                   <input
                     type="datetime-local"
                     value={newIncident.started_at}
                     onChange={(e) => setNewIncident({...newIncident, started_at: e.target.value})}
-                    className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -231,13 +231,13 @@ function IncidentList() {
                 <button
                   onClick={handleSubmit}
                   disabled={submitting || !newIncident.title}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 disabled:opacity-50"
                 >
                   {submitting ? '등록 중...' : '등록'}
                 </button>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 border px-4 py-2 rounded hover:bg-gray-100"
+                  className="flex-1 border border-gray-600 text-gray-300 px-4 py-2 rounded hover:bg-gray-700"
                 >
                   취소
                 </button>
@@ -247,18 +247,18 @@ function IncidentList() {
         )}
 
         {/* 필터링 */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6 flex gap-4 flex-wrap">
+        <div className="bg-gray-800 border border-gray-700 p-4 rounded-lg mb-6 flex gap-4 flex-wrap">
           <input
             type="text"
             placeholder="장애 검색..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border rounded px-3 py-2 flex-1 min-w-48"
+            className="bg-gray-900 border border-gray-600 text-gray-100 placeholder-gray-500 rounded px-3 py-2 flex-1 min-w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={severity}
             onChange={(e) => { setSeverity(e.target.value); setPage(1); }}
-            className="border rounded px-3 py-2"
+            className="bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체 심각도</option>
             <option value="Critical">🔴 Critical</option>
@@ -268,7 +268,7 @@ function IncidentList() {
           <select
             value={category}
             onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-            className="border rounded px-3 py-2"
+            className="bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">전체 카테고리</option>
             <option value="DB">DB</option>
@@ -280,14 +280,14 @@ function IncidentList() {
         </div>
 
         {/* 목록 */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">로딩 중...</div>
+            <div className="p-8 text-center text-gray-400">로딩 중...</div>
           ) : filteredIncidents.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">장애 내역이 없습니다.</div>
+            <div className="p-8 text-center text-gray-400">장애 내역이 없습니다.</div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-900/60">
                 <tr>
                   <th className="px-4 py-3 text-left w-10">
                     <input
@@ -296,12 +296,12 @@ function IncidentList() {
                       onChange={toggleSelectAll}
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">발생일</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">제목</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">심각도</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">카테고리</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">상태</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">다운타임</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">발생일</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">제목</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">심각도</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">카테고리</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">상태</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">다운타임</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,7 +309,7 @@ function IncidentList() {
                   <tr
                     key={inc.id}
                     onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
-                    className="border-t hover:bg-gray-50 cursor-pointer"
+                    className="border-t border-gray-700 hover:bg-gray-700/50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       <input
@@ -318,12 +318,12 @@ function IncidentList() {
                         onChange={() => toggleSelect(inc.id)}
                       />
                     </td>
-                    <td className="px-4 py-3 text-sm">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{inc.title}</td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR')}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
                     <td className="px-4 py-3">{getSeverityBadge(inc.severity)}</td>
-                    <td className="px-4 py-3 text-sm">{inc.category}</td>
-                    <td className="px-4 py-3 text-sm">{inc.status}</td>
-                    <td className="px-4 py-3 text-sm">{inc.downtime ? `${inc.downtime.toFixed(0)}분` : '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{inc.category}</td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{inc.status}</td>
+                    <td className="px-4 py-3 text-sm text-gray-300">{inc.downtime ? `${inc.downtime.toFixed(0)}분` : '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -336,15 +336,15 @@ function IncidentList() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-4 py-2 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-4 py-2 border border-gray-600 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-700"
           >
             이전
           </button>
-          <span className="px-4 py-2">{page}</span>
+          <span className="px-4 py-2 text-gray-300">{page}</span>
           <button
             onClick={() => setPage(p => p + 1)}
             disabled={filteredIncidents.length === 0}
-            className="px-4 py-2 border rounded disabled:opacity-50 hover:bg-gray-100"
+            className="px-4 py-2 border border-gray-600 text-gray-300 rounded disabled:opacity-50 hover:bg-gray-700"
           >
             다음
           </button>

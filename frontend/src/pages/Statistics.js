@@ -31,70 +31,73 @@ function Statistics() {
   const severityData = stats ? Object.entries(stats.by_severity).map(([name, value]) => ({ name, value })) : [];
   const categoryData = stats ? Object.entries(stats.by_category).map(([name, value]) => ({ name, value })) : [];
 
-  if (loading) return <div className="p-8 text-center">로딩 중...</div>;
+  if (loading) return <div className="min-h-screen bg-gray-900 p-8 text-center text-gray-400">로딩 중...</div>;
+
+  const chartTooltipStyle = { backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '6px', color: '#f3f4f6' };
+  const chartLegendStyle = { color: '#9ca3af' };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
+    <div className="min-h-screen bg-gray-900">
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-100 cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
         <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-gray-600 hover:text-blue-600">대시보드</button>
-          <button onClick={() => navigate('/incidents')} className="text-gray-600 hover:text-blue-600">장애 목록</button>
-          <button onClick={logout} className="text-red-600 hover:text-red-800">로그아웃</button>
+          <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-blue-400 transition-colors">대시보드</button>
+          <button onClick={() => navigate('/incidents')} className="text-gray-400 hover:text-blue-400 transition-colors">장애 목록</button>
+          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">로그아웃</button>
         </div>
       </nav>
 
       <div className="max-w-6xl mx-auto p-6">
-        <h2 className="text-2xl font-bold mb-6">통계</h2>
+        <h2 className="text-2xl font-bold text-gray-100 mb-6">통계</h2>
 
         <div className="grid grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500 text-sm mb-2">전체 장애 건수</p>
-            <p className="text-4xl font-bold text-blue-600">{stats?.total_incidents || 0}</p>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+            <p className="text-gray-400 text-sm mb-2">전체 장애 건수</p>
+            <p className="text-4xl font-bold text-blue-500">{stats?.total_incidents || 0}</p>
           </div>
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500 text-sm mb-2">평균 다운타임</p>
-            <p className="text-4xl font-bold text-red-600">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+            <p className="text-gray-400 text-sm mb-2">평균 다운타임</p>
+            <p className="text-4xl font-bold text-red-400">
               {stats?.average_downtime ? `${stats.average_downtime.toFixed(0)}분` : '-'}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">심각도별 장애 건수</h3>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">심각도별 장애 건수</h3>
             {severityData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie data={severityData} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
                     {severityData.map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} stroke="#1f2937" />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={chartTooltipStyle} itemStyle={{ color: '#f3f4f6' }} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-gray-500 py-8">데이터 없음</p>
+              <p className="text-center text-gray-400 py-8">데이터 없음</p>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">카테고리별 장애 건수</h3>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">카테고리별 장애 건수</h3>
             {categoryData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={categoryData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="name" tick={{ fill: '#9ca3af' }} />
+                  <YAxis tick={{ fill: '#9ca3af' }} />
+                  <Tooltip contentStyle={chartTooltipStyle} itemStyle={{ color: '#f3f4f6' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                   <Bar dataKey="value" fill="#3b82f6" name="장애 건수" />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-gray-500 py-8">데이터 없음</p>
+              <p className="text-center text-gray-400 py-8">데이터 없음</p>
             )}
           </div>
         </div>

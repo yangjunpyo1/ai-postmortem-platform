@@ -5,24 +5,24 @@ import useAuth from '../hooks/useAuth';
 
 const Field = ({ label, field, multiline, editing, editData, setEditData, postmortem }) => (
   <div className="mb-4">
-    <label className="block text-sm font-semibold text-gray-600 mb-1">{label}</label>
+    <label className="block text-sm font-semibold text-gray-400 mb-1">{label}</label>
     {editing ? (
       multiline ? (
         <textarea
           value={editData[field] || ''}
           onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
-          className="w-full border rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       ) : (
         <input
           type="text"
           value={editData[field] || ''}
           onChange={(e) => setEditData(prev => ({ ...prev, [field]: e.target.value }))}
-          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-900 border border-gray-600 text-gray-100 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       )
     ) : (
-      <p className="text-sm text-gray-800 whitespace-pre-wrap">{postmortem?.[field] || '-'}</p>
+      <p className="text-sm text-gray-100 whitespace-pre-wrap">{postmortem?.[field] || '-'}</p>
     )}
   </div>
 );
@@ -81,51 +81,51 @@ function PostmortemDetail() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center">로딩 중...</div>;
+  if (loading) return <div className="min-h-screen bg-gray-900 p-8 text-center text-gray-400">로딩 중...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
+    <div className="min-h-screen bg-gray-900">
+      <nav className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-100 cursor-pointer" onClick={() => navigate('/dashboard')}>AI Postmortem Platform</h1>
         <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-gray-600 hover:text-blue-600">대시보드</button>
-          <button onClick={() => navigate('/incidents')} className="text-gray-600 hover:text-blue-600">장애 목록</button>
-          <button onClick={() => navigate('/statistics')} className="text-gray-600 hover:text-blue-600">통계</button>
-          <button onClick={logout} className="text-red-600 hover:text-red-800">로그아웃</button>
+          <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-blue-400 transition-colors">대시보드</button>
+          <button onClick={() => navigate('/incidents')} className="text-gray-400 hover:text-blue-400 transition-colors">장애 목록</button>
+          <button onClick={() => navigate('/statistics')} className="text-gray-400 hover:text-blue-400 transition-colors">통계</button>
+          <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">로그아웃</button>
         </div>
       </nav>
 
       <div className="max-w-4xl mx-auto p-6">
         {incident && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-4">{incident.title}</h2>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="font-medium">발생 시각:</span> {new Date(incident.started_at).toLocaleString('ko-KR')}</div>
-              <div><span className="font-medium">종료 시각:</span> {incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR') : '-'}</div>
-              <div><span className="font-medium">다운타임:</span> {incident.downtime ? `${incident.downtime.toFixed(0)}분` : '-'}</div>
-              <div><span className="font-medium">심각도:</span> {incident.severity}</div>
-              <div><span className="font-medium">카테고리:</span> {incident.category}</div>
-              <div><span className="font-medium">상태:</span> {incident.status}</div>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+            <h2 className="text-2xl font-bold text-gray-100 mb-4">{incident.title}</h2>
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
+              <div><span className="font-medium text-gray-400">발생 시각:</span> {new Date(incident.started_at).toLocaleString('ko-KR')}</div>
+              <div><span className="font-medium text-gray-400">종료 시각:</span> {incident.ended_at ? new Date(incident.ended_at).toLocaleString('ko-KR') : '-'}</div>
+              <div><span className="font-medium text-gray-400">다운타임:</span> {incident.downtime ? `${incident.downtime.toFixed(0)}분` : '-'}</div>
+              <div><span className="font-medium text-gray-400">심각도:</span> {incident.severity}</div>
+              <div><span className="font-medium text-gray-400">카테고리:</span> {incident.category}</div>
+              <div><span className="font-medium text-gray-400">상태:</span> {incident.status}</div>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold">Postmortem 문서</h3>
+            <h3 className="text-xl font-bold text-gray-100">Postmortem 문서</h3>
             <div className="flex gap-2">
               {editing ? (
                 <>
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 disabled:opacity-50"
                   >
                     {saving ? '저장 중...' : '저장'}
                   </button>
                   <button
                     onClick={() => { setEditing(false); setEditData(postmortem); }}
-                    className="border px-4 py-2 rounded hover:bg-gray-100"
+                    className="border border-gray-600 text-gray-300 px-4 py-2 rounded hover:bg-gray-700"
                   >
                     취소
                   </button>
@@ -133,7 +133,7 @@ function PostmortemDetail() {
               ) : (
                 <button
                   onClick={() => setEditing(true)}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                  className="bg-gray-700 text-gray-100 px-4 py-2 rounded hover:bg-gray-600"
                 >
                   수정
                 </button>
@@ -153,22 +153,22 @@ function PostmortemDetail() {
               <Field label="유사 장애 히스토리" field="similar_incidents" multiline editing={editing} editData={editData} setEditData={setEditData} postmortem={postmortem} />
             </>
           ) : (
-            <p className="text-gray-500 text-center py-8">Postmortem 문서가 생성 중입니다. /resolve 명령어로 생성할 수 있습니다.</p>
+            <p className="text-gray-400 text-center py-8">Postmortem 문서가 생성 중입니다. /resolve 명령어로 생성할 수 있습니다.</p>
           )}
         </div>
 
         {similar.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-bold mb-4">유사 장애</h3>
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-gray-100 mb-4">유사 장애</h3>
             <div className="space-y-3">
               {similar.map(inc => (
                 <div
                   key={inc.id}
                   onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
-                  className="border rounded p-3 hover:bg-gray-50 cursor-pointer"
+                  className="border border-gray-700 rounded p-3 hover:bg-gray-700/50 cursor-pointer transition-colors"
                 >
-                  <p className="font-medium">{inc.title}</p>
-                  <p className="text-sm text-gray-500">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR')}</p>
+                  <p className="font-medium text-gray-100">{inc.title}</p>
+                  <p className="text-sm text-gray-400">{inc.severity} · {inc.category} · {new Date(inc.started_at).toLocaleDateString('ko-KR')}</p>
                 </div>
               ))}
             </div>

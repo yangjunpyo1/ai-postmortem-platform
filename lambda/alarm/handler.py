@@ -57,13 +57,14 @@ def get_category_from_alarm_name(alarm_name):
 def create_incident(title, severity, category, started_at):
     try:
         conn = get_db_connection()
+        now = datetime.utcnow()
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT INTO incidents (user_id, title, severity, category, status, started_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO incidents (user_id, title, severity, category, status, started_at, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (AUTO_INCIDENT_USER_ID, title, severity, category, "발생중", started_at)
+                (AUTO_INCIDENT_USER_ID, title, severity, category, "발생중", started_at, now, now)
             )
             incident_id = cursor.lastrowid
         conn.commit()

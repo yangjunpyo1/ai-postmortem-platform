@@ -160,6 +160,10 @@ resource "aws_lambda_function" "alarm" {
     variables = {
       SLACK_BOT_TOKEN  = var.slack_bot_token
       SLACK_CHANNEL_ID = var.slack_channel_id
+      DB_HOST          = var.rds_endpoint
+      DB_NAME          = var.rds_db_name
+      DB_USER          = var.rds_username
+      DB_PASSWORD      = var.rds_password
     }
   }
 

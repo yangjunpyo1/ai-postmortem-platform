@@ -1,0 +1,111 @@
+name: Deploy Lambda
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/app/**'
+      - 'backend/requirements.txt'
+      - 'lambda/postmortem/**'
+      - '.github/workflows/deploy-lambda.yml'
+
+env:
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      fastapi: ${{ steps.filter.outputs.fastapi }}
+      postmortem: ${{ steps.filter.outputs.postmortem }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            fastapi:
+              - 'backend/app/**'
+              - 'backend/requirements.txt'
+            postmortem:
+              - 'lambda/postmortem/**'
+
+  deploy-fastapi:
+    needs: changes
+    if: needs.changes.outputs.fastapi == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies into package dir
+        run: pip install -r backend/requirements.txt -t build/fastapi
+
+      - name: Copy app source
+        run: cp -r backend/app build/fastapi/app
+
+      - name: Remove bytecode caches
+        run: find build/fastapi -name '__pycache__' -type d -prune -exec rm -rf {} +
+
+      - name: Zip package
+        working-directory: build/fastapi
+        run: zip -r ../../lambda_fastapi.zip .
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update yp-lambda-fastapi code
+        run: |
+          aws lambda update-function-code \
+            --function-name yp-lambda-fastapi \
+            --zip-file fileb://lambda_fastapi.zip \
+            --no-cli-pager
+
+      - name: Wait for update to complete
+        run: aws lambda wait function-updated --function-name yp-lambda-fastapi
+
+  deploy-postmortem:
+    needs: changes
+    if: needs.changes.outputs.postmortem == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies into package dir
+        run: pip install -r lambda/postmortem/requirements.txt -t build/postmortem
+
+      - name: Copy handler source
+        run: cp lambda/postmortem/handler.py build/postmortem/
+
+      - name: Remove bytecode caches
+        run: find build/postmortem -name '__pycache__' -type d -prune -exec rm -rf {} +
+
+      - name: Zip package
+        working-directory: build/postmortem
+        run: zip -r ../../lambda_postmortem.zip .
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update yp-lambda-postmortem code
+        run: |
+          aws lambda update-function-code \
+            --function-name yp-lambda-postmortem \
+            --zip-file fileb://lambda_postmortem.zip \
+            --no-cli-pager
+
+      - name: Wait for update to complete
+        run: aws lambda wait function-updated --function-name yp-lambda-postmortem

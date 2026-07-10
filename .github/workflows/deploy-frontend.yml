@@ -1,0 +1,79 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+env:
+  AWS_REGION: ap-northeast-2
+  S3_BUCKET: yp-ai-postmortem-frontend
+  API_GATEWAY_NAME: yp-api-gw
+  API_STAGE: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve current API Gateway URL
+        id: api
+        run: |
+          API_ID=$(aws apigatewayv2 get-apis \
+            --query "Items[?Name=='${{ env.API_GATEWAY_NAME }}'].ApiId | [0]" \
+            --output text)
+          if [ -z "$API_ID" ] || [ "$API_ID" = "None" ]; then
+            echo "API Gateway '${{ env.API_GATEWAY_NAME }}' 를 찾을 수 없습니다" >&2
+            exit 1
+          fi
+          echo "url=https://${API_ID}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/${{ env.API_STAGE }}" >> "$GITHUB_OUTPUT"
+
+      - name: Update config.json with live API URL
+        run: |
+          printf '{\n    "REACT_APP_API_URL": "%s"\n}\n' "${{ steps.api.outputs.url }}" > frontend/build/config.json
+
+      - name: Sync build to S3
+        run: |
+          aws s3 sync frontend/build "s3://${{ env.S3_BUCKET }}" \
+            --delete \
+            --exclude "index.html" \
+            --exclude "config.json"
+          aws s3 cp frontend/build/index.html "s3://${{ env.S3_BUCKET }}/index.html" \
+            --cache-control "no-cache"
+          aws s3 cp frontend/build/config.json "s3://${{ env.S3_BUCKET }}/config.json" \
+            --content-type "application/json" \
+            --cache-control "no-cache"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          DIST_ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?Origins.Items[?contains(DomainName, '${{ env.S3_BUCKET }}')]] | [0].Id" \
+            --output text)
+          if [ -z "$DIST_ID" ] || [ "$DIST_ID" = "None" ]; then
+            echo "S3 버킷 '${{ env.S3_BUCKET }}' 를 오리진으로 사용하는 CloudFront 배포를 찾을 수 없습니다" >&2
+            exit 1
+          fi
+          aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*"

@@ -45,3 +45,4 @@ def health_check():
     return {"status": "ok"}
 
 handler = Mangum(app, lifespan="off", api_gateway_base_path="/dev")
+#

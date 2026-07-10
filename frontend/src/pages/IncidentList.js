@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import SeverityBadge from '../components/SeverityBadge';
 import StatusBadge from '../components/StatusBadge';
+import { formatKSTDate } from '../utils/date';
 
 function IncidentList() {
   const navigate = useNavigate();
@@ -299,7 +300,7 @@ function IncidentList() {
                           onChange={() => toggleSelect(inc.id)}
                         />
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{formatKSTDate(inc.started_at)}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
                       <td className="px-4 py-3"><SeverityBadge severity={inc.severity} /></td>
                       <td className="px-4 py-3 text-sm text-gray-300">{inc.category}</td>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import SeverityBadge from '../components/SeverityBadge';
 import StatusBadge from '../components/StatusBadge';
+import { formatKSTDate } from '../utils/date';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ function Dashboard() {
                     onClick={() => navigate(`/incidents/${inc.id}/postmortem`)}
                     className="border-t border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-3 text-sm text-gray-300">{new Date(inc.started_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
+                    <td className="px-6 py-3 text-sm text-gray-300">{formatKSTDate(inc.started_at)}</td>
                     <td className="px-6 py-3 text-sm font-medium text-gray-100">{inc.title}</td>
                     <td className="px-6 py-3"><SeverityBadge severity={inc.severity} /></td>
                     <td className="px-6 py-3"><StatusBadge status={inc.status} /></td>

@@ -18,13 +18,15 @@ Postmortem 문서를 자동으로 생성하고
 
 ### 목표
 - AWS CloudWatch로 장애 자동 감지
+- CloudWatch 알람 발생 시 RDS에 장애 자동 등록
 - 심각도별 슬랙 알림으로 불필요한 온콜 호출 최소화
 - 장애 종료 시 슬랙 대화 자동 수집
 - Claude AI가 Postmortem 문서 자동 생성
-- 유사 장애 자동 검색으로 반복 장애 예방
+- 카테고리/심각도 기반 유사 장애 조회로 반복 장애 예방
 - Grafana로 장애 메트릭 시각화
 - 웹 대시보드에서 장애 히스토리 조회/관리
 - Terraform IaC로 누구든 동일한 환경 즉시 구축
+- GitHub Actions CI/CD로 코드 변경 시 자동 배포
 
 ### 프로젝트 선택 이유
 
